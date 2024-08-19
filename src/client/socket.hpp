@@ -20,7 +20,7 @@ void pp(std::vector<std::string> vec);
 class Socket {
 private:
     struct sockaddr_in addr; //
-    int just;                // 如果是1，则代表非用户操作, 如果是2，则代表用户操作
+    // int just;              
     Account account;
     int strToNum(std::string str) {
         std::stringstream ss(str);
@@ -31,9 +31,6 @@ private:
     }
     std::string ip;
     int hand;
-    // std::queue<std::string> messageQueue;
-    // std::mutex queueMutex;
-    // std::condition_variable queueCondVar;
     // 消息队列
     std::queue<std::string> message_queue;
     // 队列互斥锁

@@ -98,7 +98,7 @@ void Socket::showSelfInfo(int n) // 查看自己信息1
     {
         return;
     }
-    std::cout << "是否姓名(y/N)" << std::endl;
+    std::cout << "是否修改姓名(y/N)" << std::endl;
     std::string choice;
     std::cin >> choice;
     if (choice == "y" || choice == "Y")

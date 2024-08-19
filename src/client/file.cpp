@@ -655,13 +655,13 @@ void Socket::getget_file(std::string name)
                     std::cout << "发送失败" << std::endl;
                     perror("recv");
                 }
-                fclose(fp);
-                return;
+                // fclose(fp);
+                // return;
             }
             fwrite(buffer, 1, len, fp);
             total_received += len;
-            // float progress = static_cast<float>(total_received) / file_size * 100;
-            // std::cout << progress << "%" << std::endl;
+            float progress = static_cast<float>(total_received) / file_size * 100;
+            std::cout << progress << "%" << std::endl;
         }
         // rr += bytes_read;
         if (total_received < file_size)
