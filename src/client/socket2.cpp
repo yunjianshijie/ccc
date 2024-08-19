@@ -16,8 +16,8 @@ void Socket::private_chat(std::string id, std::string friend_id, std::string fri
     json["friend_id"] = friend_id;
     json["mode"] = HISTORY_MESSAGE;
     this->send_string(json.dump()); // 发送消息
-    {
-        HISTORY_MESSAGE;
+     {
+    //     HISTORY_MESSAGE;
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] { return this->result_ready; });
         this->result_ready = false;
