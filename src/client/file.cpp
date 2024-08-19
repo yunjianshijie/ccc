@@ -676,7 +676,7 @@ void Socket::getget_file(std::string name)
             // rr += bytes_read;
             if (total_received < file_size)
             {
-                std::cout << rr << std::endl;
+                std::cout << total_received << std::endl;
                 std::cout << "接收失败" << std::endl;
                 fcntl(new_fd, F_SETFL, flag);
                 close(new_fd);
@@ -685,7 +685,7 @@ void Socket::getget_file(std::string name)
             }
         fcntl(new_fd, F_SETFL, flag);
         close(new_fd);
-        std::cout << "接收" << rr << " 字节" << std::endl;
+        std::cout << "接收" << total_received << " 字节" << std::endl;
         std::cout << "接收成功" << std::endl;
         file.close();
     }
