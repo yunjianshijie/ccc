@@ -95,6 +95,7 @@ void Socket::socket_do() {
                 }
                 // 给服务器发送登录请求
                 //  从redis里面找到账号信息
+                //
             } else if (choice == "2") {                                             // 注册
                 Account account1;                                                   //
                 register_ui1(account1);                                             //
