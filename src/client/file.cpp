@@ -633,56 +633,46 @@ void Socket::getget_file(std::string name)
         return;
     }
     int len;
-    char buffer[32768];
+    char buffer[40000];
     off_t total_received = 0;
     try
     {
         std::cout << "size:" << file_size << std::endl;
         std::ofstream file(creatFile, std::ios::binary);
-        char buffer[32768];
+        char buffer[40000];
         ssize_t bytes_read;
         ssize_t rr;
         // std::cout << "收到！" << std::endl;
         int flag = fcntl(new_fd, F_GETFL, 0);
         fcntl(new_fd, F_SETFL, flag | O_NONBLOCK);
-        // while (rr < file_size)
-        // {
-        //     if ((bytes_read = read(new_fd, buffer, sizeof(buffer))) <= 0)
-        //     {
-        //         break;
-        //     }
-        //     file.write(buffer, bytes_read);
-        //     rr += bytes_read;
-        //     //
-        // }
         while (total_received < file_size)
-                {
-                    len = recv(new_fd, buffer, sizeof(buffer), 0);
-                    if (len <= 0)
-                    {
-                        if (len < 0)
-                        {
-                            std::cout << "发送失败" << std::endl;
-                            perror("recv");
-                        }
-                        fclose(fp);
-                        return ;
-                    }
-                    fwrite(buffer, 1, len, fp);
-                    total_received += len;
-                    // float progress = static_cast<float>(total_received) / file_size * 100;
-                    // std::cout << progress << "%" << std::endl;
-                }
-            // rr += bytes_read;
-            if (total_received < file_size)
+        {
+            len = recv(new_fd, buffer, sizeof(buffer), 0);
+            if (len <= 0)
             {
-                std::cout << total_received << std::endl;
-                std::cout << "接收失败" << std::endl;
-                fcntl(new_fd, F_SETFL, flag);
-                close(new_fd);
-                file.close();
+                if (len < 0)
+                {
+                    std::cout << "发送失败" << std::endl;
+                    perror("recv");
+                }
+                fclose(fp);
                 return;
             }
+            fwrite(buffer, 1, len, fp);
+            total_received += len;
+            // float progress = static_cast<float>(total_received) / file_size * 100;
+            // std::cout << progress << "%" << std::endl;
+        }
+        // rr += bytes_read;
+        if (total_received < file_size)
+        {
+            std::cout << total_received << std::endl;
+            std::cout << "接收失败" << std::endl;
+            fcntl(new_fd, F_SETFL, flag);
+            close(new_fd);
+            file.close();
+            return;
+        }
         fcntl(new_fd, F_SETFL, flag);
         close(new_fd);
         std::cout << "接收" << total_received << " 字节" << std::endl;
