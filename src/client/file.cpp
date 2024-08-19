@@ -175,7 +175,7 @@ void Socket::file_send_friend() {
 
     std::thread thread_file([this, path, ch_id] { this->send_now(path, "f", ch_id); });
     thread_file.detach();
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+   // std::cout << "!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 }
 
 void Socket::send_now(std::string path, std::string will, std::string will_id) {
@@ -196,12 +196,6 @@ void Socket::send_now(std::string path, std::string will, std::string will_id) {
     if (client_fd == -1) {
         throw std::runtime_error("Error connecting to server");
     }
-    // 连上了
-    // int file_fd = open(path.c_str(), O_RDONLY);
-    // if (file_fd == -1) {
-    //     std::cout << "文件打不开" << std::endl;
-    //     return;
-    // }
     std::filesystem::path filePath(path);
     std::time_t now = std::time(nullptr);
     std::stringstream ss;
@@ -245,40 +239,7 @@ void Socket::send_now(std::string path, std::string will, std::string will_id) {
     fcntl(new_fd, F_SETFL, flag);
     // close(file_fd);
     close(new_fd);
-    // const size_t BUFFER_SIZE = 32768;
-    // char buffer[BUFFER_SIZE];
-    // ssize_t bytes_sent;
-    // off_t offset = 0;
-    // size_t total_sent = 0;
-    // while (total_sent < file_size) {
-    //     ssize_t bytes_to_send = std::min(BUFFER_SIZE, file_size - total_sent);
-    //     bytes_sent = sendfile(new_fd, file_fd, &offset, bytes_to_send);
-    //     //
-    //     sleep(0.01);
-    //     if (bytes_sent == -1) {
-    //         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-    //             // 缓冲区已满, 使用非阻塞发送
-    //             //     bytes_sent = send(new_fd, buffer, BUFFER_SIZE, MSG_DONTWAIT);
-    //             //     if (bytes_sent > 0) {
-    //             //         total_sent += bytes_sent;
-    //             //     } else if (bytes_sent == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-    //             //         // 缓冲区仍然满, 暂时跳过此次发送
-    //             //         continue;
-    //             //     } else {
-    //             //         // 其他错误, 处理异常
-    //             //         return;
-    //             //     }
-    //             // } else {
-    //             //     // 其他错误, 处理异常
-    //             //     return;
-    //             // }
-    //         }
-    //     } else {
-    //         total_sent += bytes_sent;
-    //     }
-    //     float progress = (float)total_sent / file_size * 100;
-    //     std::cout << "Progress: " << progress << "%" << std::endl;
-    // }
+ 
     std::cout << "发送成功" << std::endl;
     // // 关文件描述符
     // // 发完了再发一个
@@ -303,7 +264,6 @@ void Socket::file_receive_group() {
     //    josn["id_name"] = group_id_name;
     josn["id"] = this->account.id;
     this->send_string(josn.dump());
-
     {
         std::unique_lock<std::mutex> lock(this->mtx);
         cv.wait(lock, [this] { return result_ready; });
@@ -508,7 +468,7 @@ void Socket::print_file_receive_f(std::string message) {
 
 void Socket::getget_file(std::string name) {
     // 建立新连接
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+   // std::cout << "!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 
     int new_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (new_fd == -1) {
@@ -576,7 +536,7 @@ void Socket::getget_file(std::string name) {
         char buffer[1024];
         ssize_t bytes_read;
         ssize_t rr;
-        std::cout << "收到！" << std::endl;
+       // std::cout << "收到！" << std::endl;
         int flag = fcntl(new_fd, F_GETFL, 0);
         fcntl(new_fd, F_SETFL, flag | O_NONBLOCK);
         while (rr < file_size) {
@@ -599,23 +559,6 @@ void Socket::getget_file(std::string name) {
         std::cout << "接收" << rr << " 字节" << std::endl;
         std::cout << "接收成功" << std::endl;
         file.close();
-        // while (total_received < file_size) {
-        //     len = recv(new_fd, buffer, sizeof(buffer), 0);
-        //     std::cout << "收到！" << std::endl;
-        //     if (len <= 0) {
-        //         if (len < 0) {
-        //             std::cout << "发送失败" << std::endl;
-        //             perror("recv");
-        //         }
-        //         fclose(fp);
-        //         return;
-        //     }
-        //     fwrite(buffer, 1, len, fp);
-        //     total_received += len;
-        //     float progress = static_cast<float>(total_received) / file_size * 100;
-        //     std::cout << progress << "%" << std::endl;
-        //}
-
     } catch (...) {
         std::cerr << "An error occurred during file reception" << std::endl;
         fclose(fp);
