@@ -624,22 +624,29 @@ void Socket::getget_file(std::string name)
     // std::cout << 4 << std::endl;
     std::string creatFile = "../../../tttt/" + file_name;
     // std::cout << 1111 << 5 << std::endl;
-    FILE *fp = fopen(creatFile.c_str(), "wb");
-    //
-    // std::cout << 6 << std::endl;
-    if (fp == NULL)
+    // FILE *fp = fopen(creatFile.c_str(), "wb");
+    // //
+    int file_fd = open(creatFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (file_fd == -1)
     {
-        std::cerr << "Failed to open file for writing" << std::endl;
+        perror("open");
         return;
     }
+
+    // std::cout << 6 << std::endl;
+    // if (fp == NULL)
+    // {
+    //     std::cerr << "Failed to open file for writing" << std::endl;
+    //     return;
+    // }
     int len;
-    char buffer[40000];
     off_t total_received = 0;
     try
     {
         std::cout << "size:" << file_size << std::endl;
         std::ofstream file(creatFile, std::ios::binary);
-        char buffer[40000];
+        char buffer[32768];
+
         ssize_t bytes_read;
         ssize_t rr;
         // std::cout << "收到！" << std::endl;
@@ -664,12 +671,26 @@ void Socket::getget_file(std::string name)
                 // fclose(fp);
                 // return;
             }
-            fwrite(buffer, 1, len, fp);
             total_received += len;
-            float progress = static_cast<float>(total_received) / file_size * 100;
-            std::cout << progress << "%" << std::endl;
+            // float progress = static_cast<float>(total_received) / file_size * 100;
+            // std::cout << progress << "%" << std::endl;
+            // std::cout << "len" << len << "read:" << total_received << std::endl;
+            ssize_t bytes_written = write(file_fd, buffer, len);
+            if (bytes_written == -1)
+            {
+                perror("write");
+                close(file_fd);
+                return;
+            }
+            if (total_received == file_size)
+            {
+                break;
+            }
         }
         // rr += bytes_read;
+        //   std::cout << "buf" << buffer << std::endl;
+        //  fwrite(buffer, 1, len, fp);
+
         if (total_received < file_size)
         {
             std::cout << total_received << std::endl;
@@ -688,7 +709,7 @@ void Socket::getget_file(std::string name)
     catch (...)
     {
         std::cerr << "An error occurred during file reception" << std::endl;
-        fclose(fp);
+        close(file_fd);
         close(new_fd);
         return;
     }
