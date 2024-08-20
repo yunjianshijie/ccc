@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <regex>
+std::string removeEscapeSequences(const std::string &input) ;
 typedef std::string (*func)(nlohmann::json &j, Redis &redis);
 // std::map<int, func> fun_map;
 std::string numToStr(int num);

@@ -323,10 +323,17 @@ std::string fun_friend_list(nlohmann::json &j, Redis &redis) {
     return redis.get_friend_list(id);
 }
 //
+std::string removeEscapeSequences(const std::string &input) {
+    // 正则表达式用于匹配 ANSI 转义序列
+    std::regex escape_seq("\x1b\\[[0-9;]*[a-zA-Z]");
+    return std::regex_replace(input, escape_seq, "");
+}
+
 std::string fun_friend_char(nlohmann::json &j, Redis &redis) {
     std::string id = j["id"];
     std::string friend_id = j["friend_id"];
-    std::string msg = j["msg"];
+    std::string msg1 = j["msg"];
+    std::string msg = removeEscapeSequences(msg1);
     std::string fd = j["f_fd"];
     std::string send_id = j["send_id"]; // 发送者id
     std::time_t now = std::time(nullptr);
@@ -1264,56 +1271,78 @@ std::string fun_file_receive(nlohmann::json &j, Redis &redis, int new_fd) {
     json["file_name"] = name;
     std::cout << "size:" << file_size << std::endl;
     send_fd(new_fd, json.dump());
-    size_t rr = 0;
-    int retries = 0;
-    std::cout << "发给" << new_fd << ":" << json.dump() << std::endl;
 
-    // if (file.is_open()) {
-    //     char buffer[32768];
-    //     while () {
-    //         if(file.read(buffer, sizeof(buffer))>=)
-    //             size_t re = send(new_fd, buffer, file.gcount(), 0); // sizeof(buffer)
-    //         if (re == -1) {
-    //             //
-    //             std::cerr << "Error" << std::endl;
-    //             std::cout << "发送" << rr << " 字节" << std::endl;
-    //             return "";
-    //         }
-    //         rr += re;
+    //   std::ifstream file(path, std::ios::binary);
+    int flag = fcntl(new_fd, F_GETFL, 0);
+    fcntl(new_fd, F_SETFL, flag & ~O_NONBLOCK);
+    if (file.is_open()) {
+        char buffer[32768];
+        size_t rr;
+        size_t ri;
+        while (rr < file_size) {
+            if (!file.read(buffer, sizeof(buffer))) {
+                std::cout << "发送完成" << std::endl;
+                break;
+            }
+            ri = send(new_fd, buffer, sizeof(buffer), 0);
+            if (ri == -1) {
+                if (errno == EINTR || errno == EAGAIN) {
+                    // continue;
+                }
+                std::cout << "发送失败1" << std::endl;
+                break;
+            }
+            rr += ri;
+            sleep(0.1);
+            float progress = (float)rr / file_size * 100;
+            std::cout << "Progress: " << progress << "%" << std::endl;
+            std::cout << rr << std::endl;
 
-    //         // std::cout << (double)rr / file_size * 100 << "%" << std::endl;
-    //     }
-    // std::cout << (double)rr / file_size * 100 << "%" << std::endl;
-    //     std::cout << "发送" << rr << " 字节" << std::endl;
-    //     send(new_fd, buffer, file.gcount(), 0);
-    //     file.close();
-    // }
-    // else {
-    //     std::cerr << "Unable to open file" << std::endl;
-    // }
-    const size_t BUFFER_SIZE = 32768;
-    size_t total_sent = 0;
-    size_t bytes_sent = 0;
-    off_t offset = 0;
-    char buffer[BUFFER_SIZE];
-    std::cout << " 开始发送" << std::endl;
-    while (total_sent < file_size) {
-        ssize_t bytes_to_send = std::min(BUFFER_SIZE, file_size - total_sent);
-        bytes_sent = sendfile(new_fd, file_fd, &offset, bytes_to_send);
-        if (bytes_sent < 0) {
-            std::cerr << "sendfile error" << std::endl;
-            perror("sendfile");
-            break;
+            if (rr == file_size) {
+                break;
+            }
         }
-        if (bytes_sent == 0) {
-            std::cout << "文件完了" << std::endl;
-            break;
+        ri = send(new_fd, buffer, file.gcount(), 0);
+        rr += ri;
+        //std::cout << buffer << std::endl;
+        if (rr < file_size) {
+            std::cout << "发送失败2" << std::endl;
         }
-        total_sent += bytes_sent;
-        float progress = (float)total_sent / file_size * 100;
-        std::cout << "Progress: " << progress << "%" << std::endl;
+
+        file.close();
+        std::cout << "发送" << rr << " 字节" << std::endl;
+    } else {
+        std::cerr << "Unable to open file" << std::endl;
     }
-    std::cout << "发送" << total_sent << " 字节" << std::endl;
-    file.close();
+    fcntl(new_fd, F_SETFL, flag);
+    close(file_fd);
+    close(new_fd);
+    // size_t rr = 0;
+    // int retries = 0;
+    // std::cout << "发给" << new_fd << ":" << json.dump() << std::endl;
+    // const size_t BUFFER_SIZE = 32768;
+    // size_t total_sent = 0;
+    // size_t bytes_sent = 0;
+    // off_t offset = 0;
+    // char buffer[BUFFER_SIZE];
+    // std::cout << " 开始发送" << std::endl;
+    // while (total_sent < file_size) {
+    //     ssize_t bytes_to_send = std::min(BUFFER_SIZE, file_size - total_sent);
+    //     bytes_sent = sendfile(new_fd, file_fd, &offset, bytes_to_send);
+    //     if (bytes_sent < 0) {
+    //         std::cerr << "sendfile error" << std::endl;
+    //         perror("sendfile");
+    //         break;
+    //     }
+    //     if (bytes_sent == 0) {
+    //         std::cout << "文件完了" << std::endl;
+    //         break;
+    //     }
+    //     total_sent += bytes_sent;
+    //     float progress = (float)total_sent / file_size * 100;
+    //     std::cout << "Progress: " << progress << "%" << std::endl;
+    // }
+    // std::cout << "发送" << total_sent << " 字节" << std::endl;
+    // file.close();
     return "";
 }
