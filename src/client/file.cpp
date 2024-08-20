@@ -650,10 +650,16 @@ void Socket::getget_file(std::string name)
             len = recv(new_fd, buffer, sizeof(buffer), 0);
             if (len <= 0)
             {
+
                 if (len < 0)
                 {
-                    std::cout << "发送失败" << std::endl;
+                    if (errno == EAGAIN || errno == EWOULDBLOCK)
+                    {
+                        continue;
+                    }
+                    std::cout << "接收失败" << std::endl;
                     perror("recv");
+                    return;
                 }
                 // fclose(fp);
                 // return;
